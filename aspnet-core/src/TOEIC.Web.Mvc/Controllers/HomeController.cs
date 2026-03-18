@@ -9,6 +9,6 @@ public class HomeController : TOEICControllerBase
 {
     public ActionResult Index()
     {
-        return View();
+        return RedirectToAction("Index", "Test");
     }
 }

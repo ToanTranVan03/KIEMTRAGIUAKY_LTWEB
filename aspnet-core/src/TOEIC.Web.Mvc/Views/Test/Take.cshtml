@@ -1,0 +1,494 @@
+@using TOEIC.Web.Startup
+@model TOEIC.Exams.Dto.ExamDetailDto
+@{
+    Layout = null;
+    ViewBag.Title = "Làm bài: " + Model.Title;
+    ViewBag.CurrentPageName = PageNames.Test;
+    var allQuestions = Model.Questions.OrderBy(q => q.QuestionNo).ToList();
+    var part5 = allQuestions.Where(q => q.PartNumber == 5 && q.PassageId == null).ToList();
+    var part6Passages = Model.Passages?.Where(p => p.Questions != null && p.Questions.Any(q => q.PartNumber == 6)).ToList() ?? new List<TOEIC.Exams.Dto.PassageDto>();
+    var part7Passages = Model.Passages?.Where(p => p.Questions != null && p.Questions.Any(q => q.PartNumber == 7)).ToList() ?? new List<TOEIC.Exams.Dto.PassageDto>();
+    var startTime = (DateTime)ViewBag.StartTime;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>@ViewBag.Title</title>
+    <link rel="stylesheet" href="~/libs/font-awesome/css/all.min.css" />
+    <link rel="stylesheet" href="~/libs/admin-lte/css/adminlte.min.css" />
+    <link rel="stylesheet" href="~/css/style.css" />
+    <style>
+        .test-workspace {
+            background:
+                radial-gradient(circle at top left, rgba(13, 110, 122, 0.18), transparent 24%),
+                radial-gradient(circle at top right, rgba(22, 67, 106, 0.16), transparent 28%),
+                linear-gradient(180deg, #f4f8fc 0%, #eef5f8 100%);
+            min-height: calc(100vh - 57px);
+            padding-bottom: 32px;
+        }
+
+        .test-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 18px;
+            padding: 22px 24px;
+            border-radius: 22px;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            box-shadow: 0 26px 60px rgba(13, 48, 80, 0.18);
+            color: #fff;
+            margin-bottom: 18px;
+        }
+
+        .test-header__title {
+            margin: 0;
+            font-size: 1.85rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .test-header__subtitle {
+            margin: 6px 0 0;
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .test-header__meta {
+            text-align: right;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            color: rgba(255, 255, 255, 0.86);
+        }
+
+        .test-header__meta strong {
+            font-weight: 700;
+        }
+
+        .navigator-panel {
+            padding: 18px;
+            position: sticky;
+            top: 110px;
+        }
+
+        .timer-card {
+            border-radius: 18px;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: #fff;
+            padding: 18px;
+            margin-bottom: 20px;
+            box-shadow: 0 18px 50px rgba(8, 20, 40, 0.25);
+        }
+
+        .timer-card__title {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            opacity: 0.75;
+            margin: 0 0 8px;
+        }
+
+        .timer-card__time {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            font-size: 2.7rem;
+            font-weight: 800;
+            letter-spacing: 0.03em;
+        }
+
+        .timer-card__label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            opacity: 0.75;
+        }
+
+        .answer-sheet {
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.93);
+            padding: 18px;
+            border: 1px solid rgba(207, 217, 228, 0.8);
+            box-shadow: 0 16px 40px rgba(15, 35, 59, 0.08);
+        }
+
+        .answer-sheet__title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+            font-weight: 800;
+            color: #1f3346;
+        }
+
+        .answer-sheet__count {
+            font-size: 0.9rem;
+            color: #5f7387;
+        }
+
+        .answer-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .answer-btn {
+            border-radius: 12px;
+            border: 1px solid rgba(147, 161, 178, 0.8);
+            padding: 10px 0;
+            font-weight: 800;
+            color: #1f3a50;
+            background: #ffffff;
+            transition: all 0.18s ease;
+        }
+
+        .answer-btn:hover {
+            border-color: #0f5e69;
+            background: rgba(14, 92, 105, 0.08);
+        }
+
+        .answer-btn.answered {
+            background: linear-gradient(135deg, #1b8a75 0%, #22b07f 100%);
+            color: #fff;
+            border-color: rgba(27, 138, 117, 0.9);
+        }
+
+        .submit-pill {
+            width: 100%;
+            border: none;
+            border-radius: 16px;
+            background: #f59e0b;
+            color: #fff;
+            font-weight: 700;
+            padding: 14px 18px;
+            margin-top: 16px;
+            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.25);
+        }
+
+        .submit-pill:hover {
+            background: #d97706;
+        }
+
+        .test-body {
+            padding-top: 24px;
+        }
+
+        .overview-card,
+        .question-panel,
+        .navigator-panel {
+            background: rgba(255, 255, 255, 0.90);
+            border: 1px solid rgba(191, 207, 220, 0.76);
+            border-radius: 24px;
+            box-shadow: 0 18px 42px rgba(27, 54, 83, 0.10);
+        }
+
+        .overview-card {
+            padding: 22px 24px;
+            margin-bottom: 20px;
+        }
+
+        .overview-grid {
+            display: grid;
+            grid-template-columns: 2fr repeat(3, 1fr);
+            gap: 14px;
+        }
+
+        .overview-main h2 {
+            margin: 0 0 10px;
+            color: #143551;
+            font-weight: 800;
+            font-size: 28px;
+        }
+
+        .overview-main p {
+            margin: 0;
+            color: #617488;
+            line-height: 1.7;
+        }
+    </style>
+</head>
+<body>
+    @await Html.PartialAsync("_Alerts.cshtml")
+
+<div class="test-workspace">
+    <div class="test-header">
+        <div>
+            <h1 class="test-header__title">@Model.Title</h1>
+            <p class="test-header__subtitle">Bài thi TOEIC Reading - Part 5, 6, 7</p>
+        </div>
+        <div class="test-header__meta">
+            <div><strong>@User.Identity.Name</strong></div>
+            <div>Mã HV: HV-124578 | Lớp: K60</div>
+        </div>
+    </div>
+
+    <section class="content test-body">
+        <div class="container-fluid">
+            <div class="overview-card">
+                <div class="overview-grid">
+                    <div class="overview-main">
+                        <h2>Giao diện làm bài tập trung và rõ ràng</h2>
+                        <p>Đọc bài đọc, chọn đáp án và theo dõi tiến độ làm bài ở cột bên phải. Hệ thống sẽ tự động nộp bài khi hết giờ.</p>
+                    </div>
+                    <div class="overview-metric">
+                        <span class="label">Tổng câu hỏi</span>
+                        <span class="value">@allQuestions.Count câu</span>
+                    </div>
+                    <div class="overview-metric">
+                        <span class="label">Thời lượng</span>
+                        <span class="value">@Model.Duration phút</span>
+                    </div>
+                    <div class="overview-metric">
+                        <span class="label">Nội dung</span>
+                        <span class="value">Part 5-7</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-xl-9" id="questions-area">
+                    @if (part5.Any())
+                    {
+                        <div class="section-block">
+                            <h2 class="section-title"><span class="badge">5</span> Part 5 - Câu Điền Từ</h2>
+                            <div class="question-panel">
+                                @foreach (var q in part5)
+                                {
+                                    <div class="q-item" id="q-@q.Id">
+                                        <div class="question-text">
+                                            <strong class="question-no">Câu @q.QuestionNo</strong>
+                                            <span>@q.Content</span>
+                                        </div>
+                                        <div class="option-list">
+                                            <label class="option-label"><input type="radio" name="q_@q.Id" value="A" class="answer-input" data-qid="@q.Id"> <span>A. @q.OptionA</span></label>
+                                            <label class="option-label"><input type="radio" name="q_@q.Id" value="B" class="answer-input" data-qid="@q.Id"> <span>B. @q.OptionB</span></label>
+                                            <label class="option-label"><input type="radio" name="q_@q.Id" value="C" class="answer-input" data-qid="@q.Id"> <span>C. @q.OptionC</span></label>
+                                            <label class="option-label"><input type="radio" name="q_@q.Id" value="D" class="answer-input" data-qid="@q.Id"> <span>D. @q.OptionD</span></label>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    @if (part6Passages.Any())
+                    {
+                        <div class="section-block">
+                            <h2 class="section-title"><span class="badge">6</span> Part 6 - Điền từ vào Đoạn Văn</h2>
+                            <div class="question-panel">
+                                @foreach (var passage in part6Passages)
+                                {
+                                    <div class="passage-layout">
+                                        <div class="card passage-card">
+                                            <div class="card-body">
+                                                <div class="passage-content">@passage.Content?.Replace("□", "- ").Replace("☐", "- ")</div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            @foreach (var q in passage.Questions.OrderBy(q => q.QuestionNo))
+                                            {
+                                                <div class="q-item" id="q-@q.Id">
+                                                    <div class="question-text">
+                                                    <strong class="question-no">Câu @q.QuestionNo</strong>
+                                                        <span>@q.Content</span>
+                                                    </div>
+                                                    <div class="option-list">
+                                                        <label class="option-label"><input type="radio" name="q_@q.Id" value="A" class="answer-input" data-qid="@q.Id"> <span>A. @q.OptionA</span></label>
+                                                        <label class="option-label"><input type="radio" name="q_@q.Id" value="B" class="answer-input" data-qid="@q.Id"> <span>B. @q.OptionB</span></label>
+                                                        <label class="option-label"><input type="radio" name="q_@q.Id" value="C" class="answer-input" data-qid="@q.Id"> <span>C. @q.OptionC</span></label>
+                                                        <label class="option-label"><input type="radio" name="q_@q.Id" value="D" class="answer-input" data-qid="@q.Id"> <span>D. @q.OptionD</span></label>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    @if (part7Passages.Any())
+                    {
+                        <div class="section-block">
+                            <h2 class="section-title"><span class="badge">7</span> Part 7 - Đọc Hiểu</h2>
+                            <div class="question-panel">
+                                @foreach (var passage in part7Passages)
+                                {
+                                    <div class="passage-layout">
+                                        <div class="card passage-card">
+                                            <div class="card-body">
+                                                <div class="passage-content">@passage.Content?.Replace("□", "- ").Replace("☐", "- ")</div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            @foreach (var q in passage.Questions.OrderBy(q => q.QuestionNo))
+                                            {
+                                                <div class="q-item" id="q-@q.Id">
+                                                    <div class="question-text">
+                                                        <strong class="question-no">Cau @q.QuestionNo</strong>
+                                                        <span>@q.Content</span>
+                                                    </div>
+                                                    <div class="option-list">
+                                                        <label class="option-label"><input type="radio" name="q_@q.Id" value="A" class="answer-input" data-qid="@q.Id"> <span>A. @q.OptionA</span></label>
+                                                        <label class="option-label"><input type="radio" name="q_@q.Id" value="B" class="answer-input" data-qid="@q.Id"> <span>B. @q.OptionB</span></label>
+                                                        <label class="option-label"><input type="radio" name="q_@q.Id" value="C" class="answer-input" data-qid="@q.Id"> <span>C. @q.OptionC</span></label>
+                                                        <label class="option-label"><input type="radio" name="q_@q.Id" value="D" class="answer-input" data-qid="@q.Id"> <span>D. @q.OptionD</span></label>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="col-xl-3">
+                    <aside class="navigator-panel">
+                        <div class="timer-card" id="timerCard">
+                            <div class="timer-card__title">Thời gian làm bài</div>
+                            <div class="timer-card__time">
+                                <span id="timer-text">@Model.Duration:00</span>
+                                <span class="timer-card__label">phút</span>
+                            </div>
+                        </div>
+
+                        <div class="answer-sheet">
+                            <div class="answer-sheet__title">
+                                <span>Phiếu trả lời</span>
+                                <span class="answer-sheet__count"><span id="answeredCount">0</span> / @allQuestions.Count</span>
+                            </div>
+                            <div class="answer-grid" id="answerGrid">
+                                @foreach (var q in allQuestions)
+                                {
+                                    <button type="button" class="answer-btn" data-qid="@q.Id" data-qno="@q.QuestionNo">@q.QuestionNo</button>
+                                }
+                            </div>
+                            <button class="submit-pill" id="btnSubmit">
+                                <i class="fas fa-paper-plane mr-2"></i> Nộp bài thi
+                            </button>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+@section scripts {
+    <script>
+        var examId = @Model.Id;
+        var duration = @Model.Duration;
+        var startTime = '@startTime.ToString("o")';
+        var totalSeconds = duration * 60;
+        var elapsed = 0;
+
+        var timerInterval = setInterval(function () {
+            elapsed++;
+            var remaining = totalSeconds - elapsed;
+            if (remaining <= 0) {
+                clearInterval(timerInterval);
+                submitExam(true);
+                return;
+            }
+
+            var mins = Math.floor(remaining / 60);
+            var secs = remaining % 60;
+            $('#timer-text').text(mins + ':' + (secs < 10 ? '0' : '') + secs);
+
+            var timerBar = $('#timer-bar');
+            if (remaining <= 60) {
+                timerBar.addClass('danger').removeClass('warning');
+            } else if (remaining <= 300) {
+                timerBar.addClass('warning').removeClass('danger');
+            }
+        }, 1000);
+
+        function refreshAnswerSheet() {
+            var answered = 0;
+            $('.answer-btn').removeClass('answered');
+
+            $('.answer-input:checked').each(function () {
+                answered++;
+                var qid = $(this).data('qid');
+                $('[data-qid="' + qid + '"].answer-btn').addClass('answered');
+            });
+            $('#answeredCount').text(answered);
+        }
+
+        $(document).on('change', '.answer-input', function () {
+            refreshAnswerSheet();
+        });
+
+        $(document).on('click', '.answer-btn', function () {
+            var qid = $(this).data('qid');
+            var $target = $('#q-' + qid);
+            if ($target.length) {
+                $('html, body').animate({ scrollTop: $target.offset().top - 120 }, 250);
+            }
+        });
+
+        $('#btnSubmit').click(function () {
+            var answered = $('.answer-input:checked').length;
+            var total = @allQuestions.Count;
+            if (confirm('Bạn đã trả lời ' + answered + '/' + total + ' câu. Nộp bài ngay bây giờ?')) {
+                submitExam(false);
+            }
+        });
+
+        function submitExam(auto) {
+            clearInterval(timerInterval);
+            var answers = [];
+            $('.answer-input:checked').each(function () {
+                answers.push({
+                    questionId: parseInt($(this).data('qid')),
+                    selectedOption: $(this).val()
+                });
+            });
+
+            $.ajax({
+                url: '/Test/Submit',
+                type: 'POST',
+                contentType: 'application/json',
+                headers: { 'X-Start-Time': startTime },
+                data: JSON.stringify({ examId: examId, answers: answers, elapsedSeconds: elapsed }),
+                success: function (res) {
+                    if (res && res.success === false) {
+                        var errorMessage = (res.error && res.error.message) ? res.error.message : 'Nộp bài thất bại.';
+                        alert(errorMessage);
+                        return;
+                    }
+
+                    var payload = (res && res.result) ? res.result : res;
+                    var resultId = payload ? (payload.resultId || payload.id || payload.Id) : null;
+
+                    if (resultId) {
+                        window.location.href = '/Test/Result/' + resultId;
+                        return;
+                    }
+
+                    alert('Đã nộp bài nhưng không mở được kết quả. Hệ thống sẽ chuyển sang lịch sử thi.');
+                    window.location.href = '/Test/History';
+                },
+                error: function (xhr) {
+                    var message = 'Lỗi khi nộp bài.';
+                    if (xhr && xhr.responseJSON && xhr.responseJSON.error && xhr.responseJSON.error.message) {
+                        message = xhr.responseJSON.error.message;
+                    }
+                    alert(message);
+                }
+            });
+        }
+
+        // Initialize answer sheet display on load
+        refreshAnswerSheet();
+    </script>
+    <script src="~/libs/jquery/jquery.min.js"></script>
+    <script src="~/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="~/libs/admin-lte/js/adminlte.min.js"></script>
+}
+</body>
+</html>

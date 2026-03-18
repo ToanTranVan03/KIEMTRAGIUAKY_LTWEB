@@ -14,6 +14,12 @@
     </environment>
 }
 <h4 class="text-center">@L("LogIn")</h4>
+@if (ViewBag.SuccessMessage != null)
+{
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i> @ViewBag.SuccessMessage
+    </div>
+}
 <form id="LoginForm" asp-action="Login" method="post">
     <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
     <input type="hidden" name="returnUrlHash" />

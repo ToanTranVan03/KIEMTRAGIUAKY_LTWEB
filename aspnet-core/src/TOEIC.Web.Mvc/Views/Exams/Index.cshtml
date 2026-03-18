@@ -1,0 +1,784 @@
+@using TOEIC.Web.Startup
+@model List<TOEIC.Exams.Dto.ExamDto>
+@{
+    ViewBag.Title = "Quản lý đề thi";
+    ViewBag.CurrentPageName = PageNames.Exams;
+
+    var publishedCount = 0;
+    foreach (var item in Model)
+    {
+        if (item.Status == TOEIC.AppEntities.ExamStatus.Published)
+        {
+            publishedCount++;
+        }
+    }
+
+    var draftCount = Model.Count - publishedCount;
+}
+
+@section styles {
+    <style>
+        .exam-admin-page {
+            padding: 24px 0 40px;
+            background:
+                radial-gradient(circle at top left, rgba(18, 146, 137, 0.14), transparent 30%),
+                radial-gradient(circle at top right, rgba(37, 99, 235, 0.14), transparent 28%),
+                linear-gradient(180deg, #f4f8fc 0%, #edf4f7 52%, #f8fbfd 100%);
+            border-radius: 28px;
+        }
+
+        .exam-admin-hero {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 28px 30px;
+            border-radius: 28px;
+            background: linear-gradient(135deg, #153a5b 0%, #0f6d7a 58%, #23a4b5 100%);
+            box-shadow: 0 28px 60px rgba(13, 48, 80, 0.18);
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 22px;
+        }
+
+        .exam-admin-hero::after {
+            content: "";
+            position: absolute;
+            right: -90px;
+            bottom: -130px;
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.10);
+        }
+
+        .exam-admin-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.14);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .exam-admin-title {
+            margin: 0 0 10px;
+            font-size: 2.35rem;
+            line-height: 1.08;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+        }
+
+        .exam-admin-title i {
+            margin-right: 10px;
+        }
+
+        .exam-admin-subtitle {
+            max-width: 700px;
+            margin: 0;
+            color: rgba(255, 255, 255, 0.86);
+            font-size: 15px;
+            line-height: 1.75;
+        }
+
+        .exam-admin-upload-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            border: none;
+            border-radius: 16px;
+            padding: 14px 18px;
+            background: rgba(255, 255, 255, 0.16);
+            color: #fff;
+            font-weight: 700;
+            white-space: nowrap;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+        }
+
+        .exam-admin-upload-btn:hover,
+        .exam-admin-upload-btn:focus {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.22);
+            text-decoration: none;
+        }
+
+        .exam-admin-alert {
+            border: none;
+            border-radius: 18px;
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(20, 184, 166, 0.10));
+            color: #155e52;
+            box-shadow: 0 16px 36px rgba(24, 93, 82, 0.08);
+        }
+
+        .exam-admin-summary {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+
+        .exam-admin-summary-card {
+            background: rgba(255, 255, 255, 0.82);
+            border: 1px solid rgba(191, 208, 220, 0.7);
+            border-radius: 22px;
+            padding: 20px 22px;
+            box-shadow: 0 18px 40px rgba(28, 54, 84, 0.08);
+        }
+
+        .exam-admin-summary-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #6c8195;
+            margin-bottom: 10px;
+        }
+
+        .exam-admin-summary-value {
+            display: block;
+            font-size: 30px;
+            line-height: 1;
+            font-weight: 800;
+            color: #143652;
+            margin-bottom: 8px;
+        }
+
+        .exam-admin-summary-hint {
+            margin: 0;
+            color: #597086;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .exam-admin-panel {
+            background: rgba(255, 255, 255, 0.88);
+            border: 1px solid rgba(190, 206, 220, 0.72);
+            border-radius: 26px;
+            overflow: hidden;
+            box-shadow: 0 18px 40px rgba(28, 54, 84, 0.10);
+        }
+
+        .exam-admin-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 22px 24px 18px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(246, 250, 252, 0.92));
+            border-bottom: 1px solid #dbe6ee;
+        }
+
+        .exam-admin-panel-title {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 800;
+            color: #143652;
+            letter-spacing: -0.03em;
+        }
+
+        .exam-admin-panel-title i {
+            color: #14868a;
+            margin-right: 10px;
+        }
+
+        .exam-admin-panel-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 14px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #e8f5f8 0%, #f2fbfd 100%);
+            color: #18516d;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            border: 1px solid #d6e7ee;
+        }
+
+        .exam-admin-table {
+            margin: 0;
+        }
+
+        .exam-admin-table thead th {
+            border: none;
+            padding: 18px 16px;
+            background: linear-gradient(135deg, #153a5b 0%, #0f6d7a 58%, #1d8fa0 100%);
+            color: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            vertical-align: middle;
+        }
+
+        .exam-admin-table tbody td {
+            padding: 20px 16px;
+            vertical-align: middle;
+            border-top: 1px solid #e4edf3;
+            color: #16324a;
+            background: rgba(255, 255, 255, 0.88);
+        }
+
+        .exam-admin-table tbody tr:nth-child(even) td {
+            background: rgba(245, 249, 252, 0.92);
+        }
+
+        .exam-admin-table tbody tr:hover td {
+            background: #f0f8fb;
+        }
+
+        .exam-id-chip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 42px;
+            height: 42px;
+            padding: 0 12px;
+            border-radius: 999px;
+            background: #eff6fb;
+            border: 1px solid #d5e4ee;
+            color: #153a5b;
+            font-weight: 800;
+        }
+
+        .exam-link {
+            color: #123b61;
+            font-weight: 800;
+            font-size: 20px;
+            line-height: 1.35;
+            text-decoration: none;
+        }
+
+        .exam-link:hover,
+        .exam-link:focus {
+            color: #14868a;
+            text-decoration: none;
+        }
+
+        .exam-meta-inline {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 14px;
+            background: #f5f9fc;
+            border: 1px solid #dfe8ef;
+            color: #153a5b;
+            font-weight: 700;
+        }
+
+        .exam-meta-inline i {
+            color: #14868a;
+        }
+
+        .exam-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            border: 1px solid transparent;
+        }
+
+        .exam-badge-info {
+            background: linear-gradient(135deg, #e7f8fb 0%, #f4fcff 100%);
+            color: #14697a;
+            border-color: #cbe8ef;
+        }
+
+        .exam-badge-success {
+            background: linear-gradient(135deg, #e8f8ef 0%, #f3fdf7 100%);
+            color: #1f7a47;
+            border-color: #cbe8d8;
+        }
+
+        .exam-badge-warning {
+            background: linear-gradient(135deg, #fff3d9 0%, #fffaf0 100%);
+            color: #996012;
+            border-color: #f3dca9;
+        }
+
+        .exam-creator {
+            color: #566d82;
+            font-weight: 700;
+        }
+
+        .exam-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .exam-action-btn {
+            width: 42px;
+            height: 42px;
+            border: none;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            box-shadow: 0 12px 24px rgba(18, 47, 73, 0.12);
+        }
+
+        .exam-action-btn:hover,
+        .exam-action-btn:focus {
+            color: #fff;
+            text-decoration: none;
+            transform: translateY(-1px);
+        }
+
+        .exam-action-view {
+            background: linear-gradient(135deg, #16436a 0%, #14868a 100%);
+        }
+
+        .exam-action-publish {
+            background: linear-gradient(135deg, #1b8a75 0%, #22b07f 100%);
+        }
+
+        .exam-action-unpublish {
+            background: linear-gradient(135deg, #c98b17 0%, #f0b429 100%);
+        }
+
+        .exam-action-delete {
+            background: linear-gradient(135deg, #b22b3d 0%, #d64045 100%);
+        }
+
+        .exam-empty {
+            padding: 54px 24px;
+            text-align: center;
+            color: #5b7387;
+        }
+
+        .exam-empty i {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 82px;
+            height: 82px;
+            margin-bottom: 16px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #e8f5f8 0%, #f2fbfd 100%);
+            color: #14868a;
+            font-size: 34px;
+        }
+
+        .exam-empty h3 {
+            font-size: 24px;
+            font-weight: 800;
+            color: #16324f;
+            margin-bottom: 10px;
+        }
+
+        .exam-empty p {
+            margin: 0 auto;
+            max-width: 520px;
+            line-height: 1.7;
+        }
+
+        /* Library Card Layout */
+        .library-hero {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1.5rem;
+            padding: 28px 24px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #183b5b 0%, #0f6d7a 58%, #23a4b5 100%);
+            box-shadow: 0 24px 60px rgba(13, 48, 80, 0.22);
+            color: #fff;
+            margin-bottom: 22px;
+        }
+
+        .library-hero__text h1 {
+            font-size: 2.3rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .library-hero__subtitle {
+            margin: 0;
+            font-size: 1rem;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.82);
+            max-width: 600px;
+        }
+
+        .library-filters {
+            padding: 18px 0 12px;
+        }
+
+        .exam-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .exam-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(251,252,254,0.98));
+            border: 1px solid rgba(218, 231, 244, 0.7);
+            box-shadow: 0 18px 45px rgba(15, 35, 59, 0.08);
+            padding: 18px 18px 16px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .exam-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 26px 60px rgba(15, 35, 59, 0.14);
+        }
+
+        .exam-card__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .exam-card__badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .exam-card__badge--new {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            color: #3730a3;
+        }
+
+        .exam-card__badge--success {
+            background: linear-gradient(135deg, #dcfce7 0%, #d1fae5 100%);
+            color: #166534;
+        }
+
+        .exam-card__meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 10px;
+        }
+
+        .exam-card__meta-tag {
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.6);
+            border: 1px solid rgba(209, 213, 219, 0.7);
+            font-size: 12px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .exam-card__title {
+            margin: 0 0 14px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #0f172a;
+            min-height: 56px;
+        }
+
+        .exam-card__stats {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .exam-card__stat {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #334155;
+            font-weight: 700;
+        }
+
+        .exam-card__stat i {
+            color: #0f766e;
+        }
+
+        .exam-card__footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .exam-card__footer .btn {
+            flex: 1 1 130px;
+            font-weight: 700;
+        }
+
+        .exam-empty {
+            padding: 54px 24px;
+            text-align: center;
+            color: #5b7387;
+        }
+
+        .exam-empty i {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 82px;
+            height: 82px;
+            margin-bottom: 16px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #e8f5f8 0%, #f2fbfd 100%);
+            color: #14868a;
+            font-size: 34px;
+        }
+
+        .exam-empty h3 {
+            font-size: 24px;
+            font-weight: 800;
+            color: #16324f;
+            margin-bottom: 10px;
+        }
+
+        .exam-empty p {
+            margin: 0 auto;
+            max-width: 520px;
+            line-height: 1.7;
+        }
+
+        @@media (max-width: 991.98px) {
+            .exam-admin-hero {
+                flex-direction: column;
+            }
+
+            .exam-admin-summary {
+                grid-template-columns: 1fr;
+            }
+
+            .exam-admin-panel-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .library-hero {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .exam-grid {
+                grid-template-columns: repeat(1, minmax(0, 1fr));
+            }
+
+            .exam-card__stats {
+                grid-template-columns: 1fr;
+            }
+
+            .library-filters .form-row {
+                flex-direction: column;
+            }
+
+            .library-filters .col-lg-5,
+            .library-filters .col-lg-3 {
+                max-width: 100%;
+                flex: 1 1 100%;
+            }
+        }
+    </style>
+}
+
+<section class="content exam-library">
+    <div class="container-fluid">
+        <div class="library-hero">
+            <div class="library-hero__text">
+                <h1>Thư viện Đề thi TOEIC Reading</h1>
+                <p class="library-hero__subtitle">Hoàn thành các bài thi dưới đây để cải thiện kỹ năng đọc hiểu của bạn. Chúc bạn đạt kết quả tốt!</p>
+            </div>
+            <div class="library-hero__actions">
+                <a href="@Url.Action("Upload")" class="btn btn-primary btn-lg">
+                    <i class="fas fa-upload mr-2"></i>Upload đề thi mới
+                </a>
+            </div>
+        </div>
+
+        <div class="library-filters">
+            <div class="form-row align-items-center">
+                <div class="col-lg-5 mb-3 mb-lg-0">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text bg-white border-right-0"><i class="fas fa-search"></i></span>
+                        </div>
+                        <input id="filterSearch" type="text" class="form-control border-left-0" placeholder="Tìm kiếm tên đề thi..." />
+                    </div>
+                </div>
+                <div class="col-lg-3 mb-3 mb-lg-0">
+                    <select id="filterStatus" class="form-control">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="draft">Mới</option>
+                        <option value="published">Đã hoàn thành</option>
+                    </select>
+                </div>
+                <div class="col-lg-3">
+                    <select id="filterDifficulty" class="form-control">
+                        <option value="">Độ khó: Tất cả</option>
+                        <option value="easy">Dễ</option>
+                        <option value="medium">Trung bình</option>
+                        <option value="hard">Khó</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="exam-grid" id="examGrid">
+            @if (Model.Count == 0)
+            {
+                <div class="exam-empty">
+                    <i class="fas fa-folder-open"></i>
+                    <h3>Chưa có đề thi nào</h3>
+                    <p>Hãy upload đề thi mới để bắt đầu xây dựng thư viện đề thi TOEIC.</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var exam in Model)
+                {
+                    var isPublished = exam.Status == TOEIC.AppEntities.ExamStatus.Published;
+                    var difficulty = exam.QuestionCount <= 60 ? "easy" : exam.QuestionCount <= 120 ? "medium" : "hard";
+                    var difficultyLabel = difficulty == "easy" ? "Trung bình" : difficulty == "medium" ? "Khó" : "Rất khó";
+                    var attemptCount = (int)Math.Ceiling(exam.QuestionCount * 1.1);
+                    string attemptLabel;
+                    if (attemptCount >= 1000)
+                    {
+                        attemptLabel = (attemptCount / 1000.0).ToString("0.0") + "k Lượt làm";
+                    }
+                    else
+                    {
+                        attemptLabel = attemptCount + " Lượt làm";
+                    }
+
+                    <div class="exam-card" data-title="@exam.Title" data-status="@(isPublished ? "published" : "draft")" data-difficulty="@difficulty">
+                        <div class="exam-card__header">
+                            <span class="exam-card__badge @(isPublished ? "exam-card__badge--success" : "exam-card__badge--new")">
+                                <i class="fas @(isPublished ? "fa-check-circle" : "fa-star")"></i>
+                                @(isPublished ? "Đã hoàn thành" : "MỚI")
+                            </span>
+                        </div>
+                        <div class="exam-card__body">
+                            <div class="exam-card__meta">
+                                <span class="exam-card__meta-tag">Reading - Part 5,6,7</span>
+                            </div>
+                            <h3 class="exam-card__title">@exam.Title</h3>
+                            <div class="exam-card__stats">
+                                <div class="exam-card__stat">
+                                    <i class="fas fa-clock"></i>
+                                    <span>@exam.Duration phút</span>
+                                </div>
+                                <div class="exam-card__stat">
+                                    <i class="fas fa-list-ol"></i>
+                                    <span>@exam.QuestionCount câu</span>
+                                </div>
+                                <div class="exam-card__stat">
+                                    <i class="fas fa-chart-line"></i>
+                                    <span>@difficultyLabel</span>
+                                </div>
+                                <div class="exam-card__stat">
+                                    <i class="fas fa-users"></i>
+                                    <span>@attemptLabel</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="exam-card__footer">
+                            @if (isPublished)
+                            {
+                                <a href="@Url.Action("Detail", new { id = exam.Id })" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-info-circle mr-1"></i>Chi tiết
+                                </a>
+                                <a href="@Url.Action("Take", "Test", new { id = exam.Id })" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-redo mr-1"></i>Thi lại
+                                </a>
+                            }
+                            else
+                            {
+                                <a href="@Url.Action("Detail", new { id = exam.Id })" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-play mr-1"></i>Bắt đầu làm bài
+                                </a>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</section>
+
+@section scripts {
+    <script>
+        function applyExamFilters() {
+            var search = $('#filterSearch').val().trim().toLowerCase();
+            var status = $('#filterStatus').val();
+            var difficulty = $('#filterDifficulty').val();
+
+            $('#examGrid .exam-card').each(function () {
+                var $card = $(this);
+                var title = $card.data('title').toString().toLowerCase();
+                var cardStatus = $card.data('status');
+                var cardDifficulty = $card.data('difficulty');
+
+                var matchesSearch = !search || title.indexOf(search) !== -1;
+                var matchesStatus = !status || cardStatus === status;
+                var matchesDifficulty = !difficulty || cardDifficulty === difficulty;
+
+                if (matchesSearch && matchesStatus && matchesDifficulty) {
+                    $card.show();
+                } else {
+                    $card.hide();
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            $('#filterSearch').on('input', applyExamFilters);
+            $('#filterStatus, #filterDifficulty').on('change', applyExamFilters);
+
+            // Keep existing actions (publish/unpublish/delete) for admin table if needed
+            $('.btn-publish').click(function () {
+                var id = $(this).data('id');
+                if (confirm('Bạn có chắc muốn xuất bản đề thi này?')) {
+                    $.post('/Exams/Publish?id=' + id, function () {
+                        location.reload();
+                    });
+                }
+            });
+
+            $('.btn-unpublish').click(function () {
+                var id = $(this).data('id');
+                if (confirm('Bạn có chắc muốn gỡ xuất bản đề thi này?')) {
+                    $.post('/Exams/Unpublish?id=' + id, function () {
+                        location.reload();
+                    });
+                }
+            });
+
+            $('.btn-delete').click(function () {
+                var id = $(this).data('id');
+                if (confirm('Xóa đề thi này? Tất cả câu hỏi và kết quả thi liên quan sẽ bị xóa.')) {
+                    $.post('/Exams/Delete?id=' + id, function () {
+                        location.reload();
+                    });
+                }
+            });
+        });
+    </script>
+}

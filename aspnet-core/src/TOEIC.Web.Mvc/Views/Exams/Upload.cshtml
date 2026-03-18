@@ -1,0 +1,600 @@
+@using TOEIC.Web.Startup
+@{
+    ViewBag.Title = "Quản lý đề thi";
+    ViewBag.CurrentPageName = PageNames.Exams;
+
+    var formTitle = ViewBag.FormTitle as string ?? "";
+    var formDuration = ViewBag.FormDuration as int?;
+    var formShortDescription = ViewBag.FormShortDescription as string ?? "";
+}
+
+<div class="content-header exam-upload-header">
+    <div class="container-fluid">
+        <div class="row align-items-center mb-2">
+            <div class="col-lg-8">
+                <div class="exam-upload-title-wrap">
+                    <span class="exam-upload-kicker">Tải lên &amp; Bóc tách</span>
+                    <h1 class="m-0">Đề thi TOEIC Reading</h1>
+                    <p class="exam-upload-subtitle">Tải file Word (.docx) vào hệ thống. Hệ thống sẽ tự động bóc tách đề theo định dạng thẻ Tags.</p>
+                </div>
+            </div>
+            <div class="col-lg-4 text-lg-right mt-3 mt-lg-0">
+                <button type="button" class="btn btn-success exam-upload-top-btn" id="downloadTemplateBtn">
+                    <i class="fas fa-download mr-2"></i>Tải File Word Mẫu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid exam-upload-page">
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger exam-upload-alert">
+                <div class="d-flex align-items-start">
+                    <i class="fas fa-exclamation-circle mt-1 mr-2"></i>
+                    <div>
+                        <strong>Không thể xử lý file.</strong>
+                        <div class="mt-1" style="white-space: pre-wrap;">@ViewBag.Error</div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="row justify-content-center">
+            <div class="col-xl-10 col-xxl-9">
+                <div class="exam-upload-shell">
+                    <form method="post" enctype="multipart/form-data" asp-action="Upload" id="examUploadForm">
+                        <div class="exam-upload-shell__body">
+                            <div class="exam-upload-panel">
+                                <div class="exam-upload-panel__heading">
+                                    <span class="exam-upload-step">1.</span>
+                                    <span>Thông tin chung</span>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group col-lg-8">
+                                        <label for="title">Tên đề thi <span class="text-danger">*</span></label>
+                                        <input
+                                            type="text"
+                                            class="form-control exam-upload-input"
+                                            id="title"
+                                            name="title"
+                                            value="@formTitle"
+                                            placeholder="VD: TOEIC Reading Test 01 - ETS 2024">
+                                        <small class="form-text text-muted">Nếu để trống, hệ thống sẽ lấy tên từ nội dung file Word.</small>
+                                    </div>
+                                    <div class="form-group col-lg-4">
+                                        <label for="duration">Thời gian (phút) <span class="text-danger">*</span></label>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            max="300"
+                                            class="form-control exam-upload-input"
+                                            id="duration"
+                                            name="duration"
+                                            value="@(formDuration.HasValue ? formDuration.Value.ToString() : "75")"
+                                            placeholder="75">
+                                    </div>
+                                </div>
+
+                                <div class="form-group mb-0">
+                                    <label for="shortDescription">Mô tả ngắn</label>
+                                    <textarea
+                                        class="form-control exam-upload-input exam-upload-textarea"
+                                        id="shortDescription"
+                                        name="shortDescription"
+                                        rows="3"
+                                        placeholder="Ghi chú thêm về đề thi này...">@formShortDescription</textarea>
+                                </div>
+                            </div>
+
+                            <div class="exam-upload-panel">
+                                <div class="exam-upload-panel__heading">
+                                    <span class="exam-upload-step">2.</span>
+                                    <span>Dữ liệu đầu vào</span>
+                                </div>
+
+                                <div class="row align-items-stretch">
+                                    <div class="col-lg-8">
+                                        <div class="form-group mb-lg-0">
+                                            <label for="file">File Đề Thi (.docx) <span class="text-danger">*</span></label>
+                                            <input type="file" id="file" name="file" accept=".docx" class="d-none" required>
+
+                                            <button type="button" class="exam-dropzone" id="pickFileBtn" aria-describedby="uploadHelp">
+                                                <div class="exam-dropzone__icon">
+                                                    <i class="fas fa-file-upload"></i>
+                                                </div>
+                                                <div class="exam-dropzone__title">Click để chọn file Word (.docx)</div>
+                                                <div class="exam-dropzone__subtitle">Phải tuân thủ đúng định dạng thẻ Tags</div>
+                                                <div class="exam-dropzone__file" id="selectedFileName">Chưa có file nào được chọn</div>
+                                            </button>
+                                            <small id="uploadHelp" class="form-text text-muted">Khuyến nghị sử dụng file Word đã được chuẩn bị đúng cấu trúc để hệ thống phân tích chính xác.</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-4 mt-4 mt-lg-0">
+                                        <div class="exam-upload-sidecard">
+                                            <div class="exam-upload-sidecard__label">Quy trình</div>
+                                            <h3>3 bước hoàn tất</h3>
+                                            <ul class="exam-upload-checklist">
+                                                <li>Nhập tên đề thi, thời gian và ghi chú ngắn.</li>
+                                                <li>Chọn file Word đúng định dạng .docx.</li>
+                                                <li>Nhấn nút xử lý để tạo đề thi trong trang quản lý.</li>
+                                            </ul>
+                                            <div class="exam-upload-sidecard__meta">
+                                                <span><i class="fas fa-check-circle mr-1"></i>Form gọn gàng</span>
+                                                <span><i class="fas fa-lock mr-1"></i>Nhập liệu rõ ràng</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="exam-upload-shell__footer">
+                            <a href="@Url.Action("Index")" class="btn btn-outline-secondary exam-upload-footer-btn">
+                                <i class="fas fa-arrow-left mr-2"></i>Quay lại
+                            </a>
+
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                <button type="button" class="btn btn-warning exam-upload-demo-btn" id="downloadDemoErrorBtn">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>Demo File Lỗi
+                                </button>
+                                <button type="button" class="btn btn-success exam-upload-demo-btn" id="downloadDemoCorrectBtn">
+                                    <i class="fas fa-check-circle mr-1"></i>Demo File Chuẩn
+                                </button>
+                                <button type="submit" class="btn btn-primary exam-upload-submit">
+                                    <i class="fas fa-cloud-upload-alt mr-2"></i>Bắt đầu Tải lên &amp; Xử lý
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section styles {
+    <style>
+        .exam-upload-header {
+            margin-bottom: 1rem;
+        }
+
+        .exam-upload-page {
+            position: relative;
+            padding-top: 1.1rem;
+            padding-bottom: 2rem;
+            border-radius: 32px;
+            overflow: hidden;
+            background:
+                radial-gradient(circle at top left, rgba(20, 184, 166, 0.12), transparent 30%),
+                radial-gradient(circle at top right, rgba(21, 94, 117, 0.14), transparent 34%),
+                linear-gradient(180deg, #f7fbfa 0%, #eef5f6 50%, #f8fbfc 100%);
+            border: 2px dashed rgba(26, 26, 26, 0.08);
+        }
+
+        .exam-upload-page::before,
+        .exam-upload-page::after {
+            content: "";
+            position: absolute;
+            border-radius: 999px;
+            pointer-events: none;
+            filter: blur(4px);
+        }
+
+        .exam-upload-page::before {
+            width: 280px;
+            height: 280px;
+            top: -120px;
+            left: -90px;
+            background: radial-gradient(circle, rgba(45, 212, 191, 0.2) 0%, rgba(45, 212, 191, 0) 72%);
+        }
+
+        .exam-upload-page::after {
+            width: 340px;
+            height: 340px;
+            right: -120px;
+            bottom: -140px;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.12) 0%, rgba(37, 99, 235, 0) 72%);
+        }
+
+        .exam-upload-title-wrap {
+            color: #10213a;
+            position: relative;
+            z-index: 1;
+        }
+
+        .exam-upload-title-wrap h1 {
+            font-size: 2.15rem;
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            margin-bottom: 0;
+        }
+
+        .exam-upload-subtitle {
+            margin-top: 0.55rem;
+            font-size: 0.96rem;
+            color: rgba(15, 25, 49, 0.75);
+            max-width: 540px;
+        }
+
+        .exam-upload-kicker {
+            display: inline-block;
+            margin-bottom: 0.8rem;
+            padding: 0.42rem 0.85rem;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #d8efe9, #edf9f6);
+            color: #0f766e;
+            font-size: 0.76rem;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        .exam-upload-top-btn {
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            color: #ffffff;
+            font-weight: 700;
+            padding: 0.8rem 1.1rem;
+            box-shadow: 0 16px 36px rgba(17, 94, 89, 0.12);
+            background: linear-gradient(135deg, #0d9488 0%, #047c74 100%);
+        }
+
+        .exam-upload-alert {
+            border: 0;
+            border-radius: 18px;
+            box-shadow: 0 20px 50px rgba(239, 68, 68, 0.12);
+            position: relative;
+            z-index: 1;
+        }
+
+        .exam-upload-shell {
+            position: relative;
+            z-index: 1;
+            border-radius: 28px;
+            overflow: hidden;
+            background:
+                radial-gradient(circle at top right, rgba(255,255,255,0.3), transparent 30%),
+                linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(248,251,252,0.96) 100%);
+            box-shadow: 0 28px 70px rgba(22, 50, 79, 0.14);
+            border: 1px solid rgba(217, 231, 234, 0.95);
+        }
+
+        .exam-upload-shell__body {
+            padding: 1.6rem;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.88), rgba(255,255,255,0.98)),
+                linear-gradient(135deg, #f5faf9, #eef4f5);
+        }
+
+        .exam-upload-panel {
+            padding: 1.4rem;
+            border-radius: 22px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(252,253,253,0.98));
+            border: 1px solid #e2eaed;
+            box-shadow: 0 18px 40px rgba(22, 50, 79, 0.05);
+        }
+
+        .exam-upload-panel__heading {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            padding-bottom: 1rem;
+            margin-bottom: 1.15rem;
+            border-bottom: 1px solid #e2e8f0;
+            color: #155e75;
+            font-size: 1.08rem;
+            font-weight: 800;
+        }
+
+        .exam-upload-step {
+            display: inline-flex;
+            width: 32px;
+            height: 32px;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            background: #e7f6f4;
+            color: #0f766e;
+        }
+
+        .exam-upload-input {
+            min-height: 50px;
+            border-radius: 16px;
+            border: 1px solid #cbd5e1;
+            box-shadow: none;
+            padding-left: 1rem;
+            padding-right: 1rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .exam-upload-textarea {
+            min-height: 120px;
+            padding-top: 0.8rem;
+            resize: vertical;
+        }
+
+        .exam-upload-input:focus {
+            border-color: #14b8a6;
+            box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.12);
+            transform: translateY(-1px);
+        }
+
+        .exam-dropzone {
+            width: 100%;
+            min-height: 260px;
+            padding: 2.1rem 1.5rem;
+            border-radius: 22px;
+            border: 2px dashed #5bb8af;
+            background:
+                radial-gradient(circle at top, rgba(45, 212, 191, 0.16), transparent 42%),
+                linear-gradient(180deg, #f8fcfb 0%, #edf7f5 100%);
+            color: #10213a;
+            text-align: center;
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+
+        .exam-dropzone:hover,
+        .exam-dropzone.is-dragover {
+            transform: translateY(-2px);
+            border-color: #0f766e;
+            box-shadow: 0 18px 45px rgba(15, 118, 110, 0.14);
+            background:
+                radial-gradient(circle at top, rgba(20, 184, 166, 0.18), transparent 44%),
+                linear-gradient(180deg, #f6fbfa 0%, #e5f5f1 100%);
+        }
+
+        .exam-dropzone__title {
+            font-weight: 800;
+            font-size: 1.08rem;
+            margin-bottom: 0.45rem;
+        }
+
+        .exam-dropzone__subtitle {
+            color: #475569;
+            max-width: 430px;
+            margin: 0 auto 1rem;
+            line-height: 1.65;
+        }
+
+        .exam-dropzone__file {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            padding: 0.42rem 1rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid #b8e3dc;
+            color: #0f766e;
+            font-weight: 700;
+        }
+
+        .exam-upload-sidecard {
+            height: 100%;
+            padding: 1.25rem;
+            border-radius: 22px;
+            background:
+                radial-gradient(circle at top right, rgba(255,255,255,0.12), transparent 38%),
+                linear-gradient(160deg, #16324f 0%, #145b63 100%);
+            color: #d7f4ef;
+            box-shadow: 0 22px 50px rgba(15, 23, 42, 0.18);
+        }
+
+        .exam-upload-sidecard__label {
+            display: inline-block;
+            margin-bottom: 0.7rem;
+            padding: 0.28rem 0.6rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #bff4ea;
+            font-size: 0.74rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .exam-upload-sidecard h3 {
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        .exam-upload-checklist {
+            margin: 0 0 1.15rem;
+            padding-left: 1.15rem;
+        }
+
+        .exam-upload-checklist li {
+            margin-bottom: 0.65rem;
+            line-height: 1.6;
+        }
+
+        .exam-upload-sidecard__meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.65rem;
+            color: #c8f2ea;
+            font-size: 0.92rem;
+        }
+
+        .exam-upload-sidecard__meta span {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35rem 0.65rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .exam-upload-shell__footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 1.25rem 1.5rem 1.5rem;
+            border-top: 1px solid #d9e7ea;
+            background: linear-gradient(180deg, #ffffff 0%, #f9fbfc 100%);
+        }
+
+        .exam-upload-footer-btn,
+        .exam-upload-submit,
+        .exam-upload-demo-btn {
+            min-width: 180px;
+            border-radius: 15px;
+            padding: 0.82rem 1.2rem;
+            font-weight: 700;
+        }
+
+        .exam-upload-submit {
+            background: linear-gradient(135deg, #145b63 0%, #0f766e 100%);
+            border-color: #145b63;
+            box-shadow: 0 14px 28px rgba(15, 118, 110, 0.2);
+        }
+
+        .exam-upload-demo-btn {
+            border-color: rgba(0, 0, 0, 0.08);
+            box-shadow: 0 10px 24px rgba(22, 50, 79, 0.09);
+        }
+
+        @@media (max-width: 991.98px) {
+            .exam-upload-panel {
+                margin-top: 1.25rem;
+            }
+
+            .exam-upload-shell__footer {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .exam-upload-footer-btn,
+            .exam-upload-submit,
+            .exam-upload-demo-btn {
+                width: 100%;
+            }
+        }
+    </style>
+}
+
+@section scripts {
+    <script>
+        (function () {
+            var fileInput = document.getElementById('file');
+            var pickFileBtn = document.getElementById('pickFileBtn');
+            var selectedFileName = document.getElementById('selectedFileName');
+            var downloadTemplateBtn = document.getElementById('downloadTemplateBtn');
+            var downloadDemoCorrectBtn = document.getElementById('downloadDemoCorrectBtn');
+            var downloadDemoErrorBtn = document.getElementById('downloadDemoErrorBtn');
+
+            var templateContent = [
+                '[EXAM_TITLE] TOEIC Reading Test 01 - ETS 2024',
+                '[DURATION] 75',
+                '',
+                '[PART:5]',
+                '[Q:101] The company ______ to expand its operations next year.',
+                '[A: plans]',
+                '[B: planned]',
+                '[C: planning]',
+                '[D: plan]',
+                '[KEY:A]',
+                '',
+                '[PART:6]',
+                '[PASSAGE]',
+                'Please submit your report before Friday afternoon.',
+                '[END_PASSAGE]',
+                '[Q:131] What is the purpose of this notice?',
+                '[A: To request a report]',
+                '[B: To delay a deadline]',
+                '[C: To announce a holiday]',
+                '[D: To hire new staff]',
+                '[KEY:A]',
+                '[SHUFFLE:FALSE]'
+            ].join('\n');
+
+            var demoErrorContent = [
+                'TOEIC Reading Test 01 - ETS 2024 (missing tags)',
+                '',
+                '[PART:5]',
+                '[Q:101] The company ______ to expand its operations next year.',
+                '[A: plans]',
+                '[B: planned]',
+                '[C: planning]',
+                '[D: plan]',
+                // Missing KEY tag here
+                '',
+                '[PART:6]',
+                '[PASSAGE]',
+                'Please submit your report before Friday afternoon.',
+                '[END_PASSAGE]'
+            ].join('\n');
+
+            function updateSelectedFileName(file) {
+                selectedFileName.textContent = file ? file.name : 'Chưa có file nào được chọn';
+            }
+
+            function triggerDownload(filename, content) {
+                var blob = new Blob([content], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+                var link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+            }
+
+            pickFileBtn.addEventListener('click', function () {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', function () {
+                updateSelectedFileName(fileInput.files[0]);
+            });
+
+            ['dragenter', 'dragover'].forEach(function (eventName) {
+                pickFileBtn.addEventListener(eventName, function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    pickFileBtn.classList.add('is-dragover');
+                });
+            });
+
+            ['dragleave', 'dragend', 'drop'].forEach(function (eventName) {
+                pickFileBtn.addEventListener(eventName, function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    pickFileBtn.classList.remove('is-dragover');
+                });
+            });
+
+            pickFileBtn.addEventListener('drop', function (event) {
+                var files = event.dataTransfer.files;
+                if (!files || !files.length) {
+                    return;
+                }
+
+                fileInput.files = files;
+                updateSelectedFileName(files[0]);
+            });
+
+            downloadTemplateBtn.addEventListener('click', function () {
+                triggerDownload('toeic-reading-template.docx', templateContent);
+                abp.notify.info('Đã tải file mẫu. Bạn có thể mở bằng Word và lưu lại thành .docx.');
+            });
+
+            downloadDemoCorrectBtn.addEventListener('click', function () {
+                triggerDownload('demo-file-chuan.docx', templateContent);
+                abp.notify.info('Đã tải demo file chuẩn.');
+            });
+
+            downloadDemoErrorBtn.addEventListener('click', function () {
+                triggerDownload('demo-file-loi.docx', demoErrorContent);
+                abp.notify.info('Đã tải demo file lỗi.');
+            });
+        })();
+    </script>
+}

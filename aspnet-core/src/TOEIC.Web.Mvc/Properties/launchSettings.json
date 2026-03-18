@@ -18,7 +18,7 @@
     "TOEIC.Web": {
       "commandName": "Project",
       "launchBrowser": true,
-      "applicationUrl": "https://localhost:44312",
+      "applicationUrl": "http://localhost:44312",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

@@ -1,4 +1,4 @@
-﻿namespace TOEIC.Web.Startup;
+namespace TOEIC.Web.Startup;
 
 public class PageNames
 {
@@ -7,4 +7,7 @@ public class PageNames
     public const string Tenants = "Tenants";
     public const string Users = "Users";
     public const string Roles = "Roles";
+    public const string Exams = "Exams";
+    public const string Test = "Test";
+    public const string TestHistory = "TestHistory";
 }

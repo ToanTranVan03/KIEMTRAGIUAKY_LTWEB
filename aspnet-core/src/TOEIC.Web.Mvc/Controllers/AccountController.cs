@@ -1,4 +1,4 @@
-﻿using Abp;
+using Abp;
 using Abp.AspNetCore.Mvc.Authorization;
 using Abp.Authorization;
 using Abp.Authorization.Users;
@@ -81,6 +81,8 @@ public class AccountController : TOEICControllerBase
             returnUrl = GetAppHomeUrl();
         }
 
+        ViewBag.SuccessMessage = successMessage;
+
         return View(new LoginFormViewModel
         {
             ReturnUrl = returnUrl,
@@ -92,7 +94,7 @@ public class AccountController : TOEICControllerBase
 
     [HttpPost]
     [UnitOfWork]
-    public virtual async Task<JsonResult> Login(LoginViewModel loginModel, string returnUrl = "", string returnUrlHash = "")
+    public virtual async Task<ActionResult> Login(LoginViewModel loginModel, string returnUrl = "", string returnUrlHash = "")
     {
         returnUrl = NormalizeReturnUrl(returnUrl);
         if (!string.IsNullOrWhiteSpace(returnUrlHash))
@@ -105,7 +107,13 @@ public class AccountController : TOEICControllerBase
         await _signInManager.SignInAsync(loginResult.Identity, loginModel.RememberMe);
         await UnitOfWorkManager.Current.SaveChangesAsync();
 
-        return Json(new AjaxResponse { TargetUrl = returnUrl });
+        bool isAjax = HttpContext.Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+        if (isAjax)
+        {
+            return Json(new AjaxResponse { TargetUrl = returnUrl });
+        }
+
+        return Redirect(returnUrl);
     }
 
     public async Task<ActionResult> Logout()
@@ -117,6 +125,13 @@ public class AccountController : TOEICControllerBase
     private async Task<AbpLoginResult<Tenant, User>> GetLoginResultAsync(string usernameOrEmailAddress, string password, string tenancyName)
     {
         var loginResult = await _logInManager.LoginAsync(usernameOrEmailAddress, password, tenancyName);
+
+        if (loginResult.Result != AbpLoginResultType.Success &&
+            string.IsNullOrWhiteSpace(tenancyName) &&
+            _multiTenancyConfig.IsEnabled)
+        {
+            loginResult = await _logInManager.LoginAsync(usernameOrEmailAddress, password, AbpTenantBase.DefaultTenantName);
+        }
 
         switch (loginResult.Result)
         {
@@ -145,9 +160,9 @@ public class AccountController : TOEICControllerBase
 
     private bool IsSelfRegistrationEnabled()
     {
-        if (!AbpSession.TenantId.HasValue)
+        if (AbpSession.TenantId.HasValue)
         {
-            return false; // No registration enabled for host users!
+            return true;
         }
 
         return true;
@@ -217,26 +232,14 @@ public class AccountController : TOEICControllerBase
 
             var tenant = await _tenantManager.GetByIdAsync(user.TenantId.Value);
 
-            // Directly login if possible
             if (user.IsActive && (user.IsEmailConfirmed || !isEmailConfirmationRequiredForLogin))
             {
-                AbpLoginResult<Tenant, User> loginResult;
-                if (externalLoginInfo != null)
-                {
-                    loginResult = await _logInManager.LoginAsync(externalLoginInfo, tenant.TenancyName);
-                }
-                else
-                {
-                    loginResult = await GetLoginResultAsync(user.UserName, model.Password, tenant.TenancyName);
-                }
-
-                if (loginResult.Result == AbpLoginResultType.Success)
-                {
-                    await _signInManager.SignInAsync(loginResult.Identity, false);
-                    return Redirect(GetAppHomeUrl());
-                }
-
-                Logger.Warn("New registered user could not be login. This should not be normally. login result: " + loginResult.Result);
+                return RedirectToAction(
+                    "Login",
+                    new
+                    {
+                        successMessage = "Dang ky thanh cong. Vui long dang nhap de vao he thong va lam bai."
+                    });
             }
 
             return View("RegisterResult", new RegisterResultViewModel
@@ -380,12 +383,12 @@ public class AccountController : TOEICControllerBase
 
     public ActionResult RedirectToAppHome()
     {
-        return RedirectToAction("Index", "Home");
+        return RedirectToAction("Index", "Test");
     }
 
     public string GetAppHomeUrl()
     {
-        return Url.Action("Index", "About");
+        return Url.Action("Index", "Test");
     }
 
     #endregion

@@ -1,0 +1,48 @@
+﻿@model TOEIC.Exams.Dto.QuestionDto
+
+<div class="exam-question-card" data-id="@Model.Id" data-content="@Model.Content" data-opta="@Model.OptionA" data-optb="@Model.OptionB" data-optc="@Model.OptionC" data-optd="@Model.OptionD" data-correct="@Model.CorrectAnswer" data-shuffle="@Model.IsShuffle.ToString().ToLower()">
+    <div class="card-header">
+        <div class="question-header-text">
+            <span class="question-number">@Model.QuestionNo</span>
+            <span class="question-part-tag">Part @Model.PartNumber</span>
+        </div>
+        <div class="question-header-actions">
+            <button class="action-btn btn-toggle-order" type="button" title="Xáo trộn trình tự câu hỏi">
+                <i class="fas fa-shuffle"></i>
+                <span>@((Model.IsShuffle) ? "Trộn" : "Không")</span>
+            </button>
+            <button class="action-btn btn-edit-q" type="button" title="Chỉnh sửa câu hỏi">
+                <i class="fas fa-edit"></i>
+                <span>Sửa</span>
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="question-text">@Html.Raw(Model.Content)</div>
+        <div class="answers-container">
+            <div class="answer-option @(Model.CorrectAnswer == "A" ? "correct-answer" : "")" data-answer="A">
+                <span class="answer-label">A</span>
+                <span class="answer-text">@Model.OptionA</span>
+            </div>
+            <div class="answer-option @(Model.CorrectAnswer == "B" ? "correct-answer" : "")" data-answer="B">
+                <span class="answer-label">B</span>
+                <span class="answer-text">@Model.OptionB</span>
+            </div>
+            <div class="answer-option @(Model.CorrectAnswer == "C" ? "correct-answer" : "")" data-answer="C">
+                <span class="answer-label">C</span>
+                <span class="answer-text">@Model.OptionC</span>
+            </div>
+            <div class="answer-option @(Model.CorrectAnswer == "D" ? "correct-answer" : "")" data-answer="D">
+                <span class="answer-label">D</span>
+                <span class="answer-text">@Model.OptionD</span>
+            </div>
+        </div>
+        @if (!Model.IsShuffle)
+        {
+            <div class="badge-no-shuffle">
+                <i class="fas fa-lock"></i>
+                <span>Không trộn đáp án</span>
+            </div>
+        }
+    </div>
+</div>

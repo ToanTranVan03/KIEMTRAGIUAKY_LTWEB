@@ -3,7 +3,18 @@
     l = abp.localization.getSource("TOEIC"),
     _$modal = $("#UserCreateModal"),
     _$form = _$modal.find("form"),
-    _$table = $("#UsersTable");
+    _$table = $("#UsersTable"),
+    _$userCount = $("#UserCount");
+
+  function refreshUserCount() {
+    if (!_$userCount.length) {
+      return;
+    }
+
+    _userService.getUserCount().done(function (count) {
+      _$userCount.text(count);
+    });
+  }
 
   var _$usersTable = _$table.DataTable({
     paging: true,
@@ -65,7 +76,7 @@
             `   <button type="button" class="btn btn-sm bg-secondary edit-user" data-user-id="${row.id}" data-bs-toggle="modal" data-bs-target="#UserEditModal">`,
             `       <i class="fas fa-pencil-alt"></i> ${l("Edit")}`,
             "   </button>",
-            `   <button type="button" class="btn btn-sm bg-danger delete-user" data-user-id="${row.id}" data-user-name="${row.name}">`,
+            `   <button type="button" class="btn btn-sm bg-danger delete-user" data-user-id="${row.id}" data-user-name="${row.userName}">`,
             `       <i class="fas fa-trash"></i> ${l("Delete")}`,
             "   </button>",
           ].join("");
@@ -114,6 +125,7 @@
         _$form[0].reset();
         abp.notify.info(l("SavedSuccessfully"));
         _$usersTable.ajax.reload();
+        refreshUserCount();
       })
       .always(function () {
         abp.ui.clearBusy(_$modal);
@@ -140,6 +152,7 @@
             .done(() => {
               abp.notify.info(l("SuccessfullyDeleted"));
               _$usersTable.ajax.reload();
+              refreshUserCount();
             });
         }
       },
@@ -162,7 +175,7 @@
   });
 
   $(document).on("click", 'a[data-bs-target="#UserCreateModal"]', (e) => {
-    $('.nav-tabs a[href="#user-details"]').tab("show");
+    $('.nav-tabs a[href="#create-user-details"]').tab("show");
   });
 
   abp.event.on("user.edited", (data) => {
@@ -187,4 +200,6 @@
       return false;
     }
   });
+
+  refreshUserCount();
 })(jQuery);

@@ -8,6 +8,7 @@ using TOEIC.Identity;
 using TOEIC.Web.Resources;
 using Castle.Facilities.Logging;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -15,6 +16,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.WebEncoders;
+using System.IO;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
 
@@ -33,6 +35,13 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
+        var dataProtectionPath = Path.Combine(_hostingEnvironment.ContentRootPath, "App_Data", "DataProtection-Keys");
+        Directory.CreateDirectory(dataProtectionPath);
+
+        services.AddDataProtection()
+            .SetApplicationName("TOEIC.Web.Mvc")
+            .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionPath));
+
         // MVC
         services.AddControllersWithViews(
                 options =>

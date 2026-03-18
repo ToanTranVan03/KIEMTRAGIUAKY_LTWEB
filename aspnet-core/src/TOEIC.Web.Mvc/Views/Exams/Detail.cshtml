@@ -1,0 +1,336 @@
+@using TOEIC.Web.Startup
+@model TOEIC.Exams.Dto.ExamDetailDto
+@{
+    ViewBag.Title = "Chi tiết đề thi: " + Model.Title;
+    ViewBag.CurrentPageName = PageNames.Exams;
+    var part5 = Model.Questions.Where(q => q.PartNumber == 5 && q.PassageId == null).OrderBy(q => q.QuestionNo).ToList();
+    var part6Passages = Model.Passages.Where(p => p.Questions != null && p.Questions.Any(q => q.PartNumber == 6)).ToList();
+    var part7Passages = Model.Passages.Where(p => p.Questions != null && p.Questions.Any(q => q.PartNumber == 7)).ToList();
+}
+
+<div class="exam-detail-wrapper">
+    <!-- Header Section -->
+    <div class="exam-detail-header">
+        <div class="container-fluid">
+            <div class="exam-title-section">
+                <div class="exam-title-main">
+                    <h1><i class="fas fa-graduation-cap"></i> @Model.Title</h1>
+                    <p>Đề thi TOEIC đầy đủ với Reading comprehension</p>
+                    <span class="exam-status-badge @((Model.Status == TOEIC.AppEntities.ExamStatus.Published) ? "published" : "draft")">
+                        @((Model.Status == TOEIC.AppEntities.ExamStatus.Published) ? "✓ Đã xuất bản" : "📝 Bản nháp")
+                    </span>
+                </div>
+                <div class="exam-meta-info">
+                    <div class="exam-meta-item">
+                        <span class="meta-label"><i class="fas fa-clock"></i> Thời gian</span>
+                        <span class="meta-value">@Model.Duration<span style="font-size: 0.6em; margin-left: 5px;">phút</span></span>
+                    </div>
+                    <div class="exam-meta-item">
+                        <span class="meta-label"><i class="fas fa-list-ol"></i> Câu hỏi</span>
+                        <span class="meta-value">@Model.Questions.Count</span>
+                    </div>
+                    <div class="exam-meta-item">
+                        <span class="meta-label"><i class="fas fa-check-circle"></i> Trạng thái</span>
+                        <span class="meta-value">100%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid" style="max-width: 1400px; margin: 0 auto;">
+        <!-- Info Alert -->
+        <div class="exam-alert">
+            <i class="fas fa-exclamation-circle"></i>
+            <div>
+                <strong>Hướng dẫn:</strong> Hệ thống đã đọc thành công dữ liệu từ file. Vui lòng rà soát lại các câu hỏi bên dưới. Nhấn "Sửa" để cập nhật nội dung nếu có sai sót trước khi xuất bản.
+            </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="exam-tabs-section">
+            <div class="exam-tabs-container nav nav-tabs" id="examPartsTab" role="tablist">
+                <a class="nav-link active" id="part5-tab" data-toggle="tab" href="#part5" role="tab" aria-controls="part5" aria-selected="true">
+                    <i class="fas fa-list-ol"></i> Part 5 <span style="opacity: 0.6; font-size: 0.85rem;">(Câu 101-130)</span>
+                </a>
+                <a class="nav-link" id="part6-tab" data-toggle="tab" href="#part6" role="tab" aria-controls="part6" aria-selected="false">
+                    <i class="fas fa-book"></i> Part 6 <span style="opacity: 0.6; font-size: 0.85rem;">(Câu 131-146)</span>
+                </a>
+                <a class="nav-link" id="part7-tab" data-toggle="tab" href="#part7" role="tab" aria-controls="part7" aria-selected="false">
+                    <i class="fas fa-newspaper"></i> Part 7 <span style="opacity: 0.6; font-size: 0.85rem;">(Câu 147-200)</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content exam-content" id="examPartsTabContent">
+            <!-- Part 5 -->
+            <div class="tab-pane fade show active" id="part5" role="tabpanel" aria-labelledby="part5-tab">
+                @if (part5.Any())
+                {
+                    <div class="part-section">
+                        <div class="part-header">
+                            <h3><i class="fas fa-list-ol"></i> Part 5 - Incomplete Sentences</h3>
+                            <div class="question-count">@part5.Count câu hỏi</div>
+                        </div>
+                        <div class="part-body">
+                            @foreach (var q in part5)
+                            {
+                                @await Html.PartialAsync("_QuestionCard", q)
+                            }
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="part-section">
+                        <div class="part-body">
+                            <div class="part-empty-message">
+                                <i class="fas fa-inbox"></i>
+                                <p>Không có câu hỏi Part 5 trong đề thi này.</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Part 6 -->
+            <div class="tab-pane fade" id="part6" role="tabpanel" aria-labelledby="part6-tab">
+                @if (part6Passages.Any())
+                {
+                    <div class="part-section">
+                        <div class="part-header">
+                            <h3><i class="fas fa-book"></i> Part 6 - Text Completion</h3>
+                            <div class="question-count">@part6Passages.Sum(p => p.Questions.Count) câu hỏi</div>
+                        </div>
+                        <div class="part-body">
+                            @foreach (var passage in part6Passages)
+                            {
+                                <div class="passage-layout">
+                                    <div class="passage-col">
+                                        <div class="passage-title">Đoạn văn #@passage.Id</div>
+                                        <div class="passage-content">@passage.Content?.Replace("□", "[  ]").Replace("☐", "[  ]")</div>
+                                    </div>
+                                    <div class="questions-col">
+                                        @foreach (var q in passage.Questions.OrderBy(q => q.QuestionNo))
+                                        {
+                                            @await Html.PartialAsync("_QuestionCard", q)
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="part-section">
+                        <div class="part-body">
+                            <div class="part-empty-message">
+                                <i class="fas fa-inbox"></i>
+                                <p>Không có đoạn văn Part 6 trong đề thi này.</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Part 7 -->
+            <div class="tab-pane fade" id="part7" role="tabpanel" aria-labelledby="part7-tab">
+                @if (part7Passages.Any())
+                {
+                    <div class="part-section">
+                        <div class="part-header">
+                            <h3><i class="fas fa-newspaper"></i> Part 7 - Reading Comprehension</h3>
+                            <div class="question-count">@part7Passages.Sum(p => p.Questions.Count) câu hỏi</div>
+                        </div>
+                        <div class="part-body">
+                            @foreach (var passage in part7Passages)
+                            {
+                                <div class="passage-layout">
+                                    <div class="passage-col">
+                                        <div class="passage-title">Đoạn văn #@passage.Id</div>
+                                        <div class="passage-content">@passage.Content?.Replace("□", "[  ]").Replace("☐", "[  ]")</div>
+                                    </div>
+                                    <div class="questions-col">
+                                        @foreach (var q in passage.Questions.OrderBy(q => q.QuestionNo))
+                                        {
+                                            @await Html.PartialAsync("_QuestionCard", q)
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="part-section">
+                        <div class="part-body">
+                            <div class="part-empty-message">
+                                <i class="fas fa-inbox"></i>
+                                <p>Không có đoạn văn Part 7 trong đề thi này.</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Question Modal -->
+<div class="modal fade" id="editQuestionModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header exam-modal-header">
+                <h5 class="modal-title"><i class="fas fa-edit"></i> Chỉnh sửa câu hỏi</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="edit-id" />
+                
+                <div class="exam-form-group">
+                    <label><i class="fas fa-file-alt"></i> Nội dung câu hỏi:</label>
+                    <textarea id="edit-content" class="form-control" rows="4" placeholder="Nhập nội dung câu hỏi..."></textarea>
+                </div>
+
+                <div style="margin-bottom: 20px; padding: 15px; background: #f9fafb; border-radius: 8px;">
+                    <label style="margin-bottom: 15px; display: block; font-weight: 700; color: #374151;">
+                        <i class="fas fa-check-square"></i> Các lựa chọn trả lời:
+                    </label>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="exam-form-group">
+                                <label>Lựa chọn A:</label>
+                                <input type="text" id="edit-optA" class="form-control" placeholder="Nhập đáp án A...">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="exam-form-group">
+                                <label>Lựa chọn B:</label>
+                                <input type="text" id="edit-optB" class="form-control" placeholder="Nhập đáp án B...">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="exam-form-group">
+                                <label>Lựa chọn C:</label>
+                                <input type="text" id="edit-optC" class="form-control" placeholder="Nhập đáp án C...">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="exam-form-group">
+                                <label>Lựa chọn D:</label>
+                                <input type="text" id="edit-optD" class="form-control" placeholder="Nhập đáp án D...">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="exam-form-group">
+                            <label><i class="fas fa-star"></i> Đáp án đúng:</label>
+                            <select id="edit-correct" class="form-control">
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                                <option value="D">D</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="exam-form-group">
+                            <label><i class="fas fa-shuffle"></i> Trộn đáp án:</label>
+                            <select id="edit-shuffle" class="form-control">
+                                <option value="true">✓ Có (Trộn)</option>
+                                <option value="false">✗ Không</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="btnSaveQuestion">
+                    <i class="fas fa-save"></i> Lưu thay đổi
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        $(document).on('click', '.btn-edit-q', function () {
+            var $card = $(this).closest('.exam-question-card');
+            $('#edit-id').val($card.data('id'));
+            $('#edit-content').val($card.data('content'));
+            $('#edit-optA').val($card.data('opta'));
+            $('#edit-optB').val($card.data('optb'));
+            $('#edit-optC').val($card.data('optc'));
+            $('#edit-optD').val($card.data('optd'));
+            $('#edit-correct').val($card.data('correct'));
+            $('#edit-shuffle').val($card.data('shuffle').toString());
+            $('#editQuestionModal').modal('show');
+        });
+
+        $(document).on('click', '.btn-toggle-order', function () {
+            var $btn = $(this);
+            var $card = $btn.closest('.exam-question-card');
+            var currentShuffle = $card.data('shuffle') === true || $card.data('shuffle') === 'true';
+            var nextShuffle = !currentShuffle;
+
+            var data = {
+                id: parseInt($card.data('id')),
+                content: $card.data('content'),
+                optionA: $card.data('opta'),
+                optionB: $card.data('optb'),
+                optionC: $card.data('optc'),
+                optionD: $card.data('optd'),
+                correctAnswer: $card.data('correct'),
+                isShuffle: nextShuffle
+            };
+
+            $.ajax({
+                url: '/Exams/EditQuestion',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function () {
+                    $card.data('shuffle', nextShuffle);
+                    $btn.find('span').text('Hoàn vị: ' + (nextShuffle ? 'Bật' : 'Tắt'));
+                    location.reload();
+                },
+                error: function () {
+                    alert('Lỗi khi cập nhật trạng thái hoàn vị!');
+                }
+            });
+        });
+
+        $('#btnSaveQuestion').click(function () {
+            var data = {
+                id: parseInt($('#edit-id').val()),
+                content: $('#edit-content').val(),
+                optionA: $('#edit-optA').val(),
+                optionB: $('#edit-optB').val(),
+                optionC: $('#edit-optC').val(),
+                optionD: $('#edit-optD').val(),
+                correctAnswer: $('#edit-correct').val(),
+                isShuffle: $('#edit-shuffle').val() === 'true'
+            };
+            $.ajax({
+                url: '/Exams/EditQuestion',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function () {
+                    location.reload();
+                },
+                error: function () {
+                    alert('Lỗi khi cập nhật câu hỏi!');
+                }
+            });
+        });
+    </script>
+}

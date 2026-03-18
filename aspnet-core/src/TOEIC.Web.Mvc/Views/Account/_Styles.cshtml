@@ -1,4 +1,24 @@
-﻿<link rel="shortcut icon" href="~/img/favicon.ico">
+﻿@using Microsoft.AspNetCore.Hosting
+@inject IWebHostEnvironment HostingEnvironment
+@{
+    var bundlePath = "view-resources/Views/_Bundles/account-layout.min.css";
+    var useBundle = HostingEnvironment.WebRootFileProvider.GetFileInfo(bundlePath).Exists;
+}
+<link rel="shortcut icon" href="~/img/favicon.ico">
 <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
 
-<link rel="stylesheet" href="~/view-resources/Views/_Bundles/account-layout.min.css" asp-append-version="true" />
+@if (useBundle)
+{
+    <link rel="stylesheet" href="~/view-resources/Views/_Bundles/account-layout.min.css" asp-append-version="true" />
+}
+else
+{
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/%40fortawesome/fontawesome-free@5.15.3/css/all.min.css" />
+    <link rel="stylesheet" href="~/libs-ext/famfamfam-flags/dist/sprite/famfamfam-flags.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/icheck-bootstrap@3.0.1/icheck-bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/css/adminlte.min.css" />
+    <link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/view-resources/Views/Account/_Layout.css" asp-append-version="true" />
+}
+

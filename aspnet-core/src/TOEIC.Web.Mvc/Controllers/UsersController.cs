@@ -24,7 +24,8 @@ public class UsersController : TOEICControllerBase
         var roles = (await _userAppService.GetRoles()).Items;
         var model = new UserListViewModel
         {
-            Roles = roles
+            Roles = roles,
+            UserCount = await _userAppService.GetUserCount()
         };
         return View(model);
     }

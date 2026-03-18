@@ -6,4 +6,6 @@ namespace TOEIC.Web.Models.Users;
 public class UserListViewModel
 {
     public IReadOnlyList<RoleDto> Roles { get; set; }
+
+    public int UserCount { get; set; }
 }

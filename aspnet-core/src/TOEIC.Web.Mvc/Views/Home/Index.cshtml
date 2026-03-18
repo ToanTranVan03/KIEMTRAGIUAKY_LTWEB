@@ -9,148 +9,92 @@
     <script src="~/view-resources/Views/_Bundles/home-index.min.js" asp-append-version="true"></script>
 }
 
-<div class="content-header">
-    <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-12">
-                <h1 class="m-0 text-dark">@L("HomePage")</h1>
-            </div>
-        </div>
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        color: white;
+        padding: 80px 0;
+        text-align: center;
+    }
+    .hero-section h1 {
+        font-size: 3rem;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+    .hero-section p {
+        font-size: 1.2rem;
+        margin-bottom: 30px;
+    }
+    .btn-toeic {
+        background-color: #f59e0b;
+        color: white;
+        padding: 15px 30px;
+        border: none;
+        border-radius: 5px;
+        font-size: 1.1rem;
+        text-decoration: none;
+        display: inline-block;
+        margin: 10px;
+    }
+    .btn-toeic:hover {
+        background-color: #d97706;
+        color: white;
+        text-decoration: none;
+    }
+    .features-section {
+        padding: 60px 0;
+        background-color: #f8fafc;
+    }
+    .feature-card {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    .feature-card h3 {
+        color: #1e3a8a;
+        margin-bottom: 15px;
+    }
+    .feature-card p {
+        color: #64748b;
+    }
+</style>
+
+<div class="hero-section">
+    <div class="container">
+        <h1>Welcome to TOEIC Practice Tests</h1>
+        <p>Prepare for your TOEIC exam with our comprehensive practice tests and study materials.</p>
+        <a href="@Url.Action("Index", "Test")" class="btn-toeic">Start Practice Test</a>
+        <a href="@Url.Action("Index", "Exams")" class="btn-toeic">View All Exams</a>
     </div>
 </div>
-<section class="content">
-<div class="container-fluid">
-<div class="row">
-    <div class="col-12">
-        <div class="alert alert-info alert-dismissible">
-            <h6><i class="icon fa fa-info"></i> This is a sample Dashboard which doesn't show any server side data. However, you can develop your own dashboard inspired by this one and its source code.</h6>
-        </div>
-    </div>
-</div>
-<!-- Info boxes -->
-<div class="row">
-    <div class="col-12 col-sm-6 col-md-3">
-        <div class="info-box">
-            <span class="info-box-icon bg-info elevation-1">
-                <i class="fas fa-cog"></i>
-            </span>
-            <div class="info-box-content">
-                <span class="info-box-text">CPU Traffic</span>
-                <span class="info-box-number">
-                    10
-                    <small>%</small>
-                </span>
-            </div>
-            <!-- /.info-box-content -->
-        </div>
-        <!-- /.info-box -->
-    </div>
-    <!-- /.col -->
-    <div class="col-12 col-sm-6 col-md-3">
-        <div class="info-box mb-3">
-            <span class="info-box-icon bg-danger elevation-1">
-                <i class="fas fa-thumbs-up"></i>
-            </span>
-            <div class="info-box-content">
-                <span class="info-box-text">Likes</span>
-                <span class="info-box-number">41,410</span>
-            </div>
-            <!-- /.info-box-content -->
-        </div>
-        <!-- /.info-box -->
-    </div>
-    <!-- /.col -->
-    <!-- fix for small devices only -->
-    <div class="clearfix hidden-md-up"></div>
-    <div class="col-12 col-sm-6 col-md-3">
-        <div class="info-box mb-3">
-            <span class="info-box-icon bg-success elevation-1">
-                <i class="fas fa-shopping-cart"></i>
-            </span>
-            <div class="info-box-content">
-                <span class="info-box-text">Sales</span>
-                <span class="info-box-number">760</span>
-            </div>
-            <!-- /.info-box-content -->
-        </div>
-        <!-- /.info-box -->
-    </div>
-    <!-- /.col -->
-    <div class="col-12 col-sm-6 col-md-3">
-        <div class="info-box mb-3">
-            <span class="info-box-icon bg-warning elevation-1">
-                <i class="fas fa-users"></i>
-            </span>
-            <div class="info-box-content">
-                <span class="info-box-text">New Members</span>
-                <span class="info-box-number">2,000</span>
-            </div>
-            <!-- /.info-box-content -->
-        </div>
-        <!-- /.info-box -->
-    </div>
-    <!-- /.col -->
-</div>
-<!-- /.row -->
-<div class="row">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title">Monthly Recap Report</h5>
-                <div class="card-tools">
-                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                        <i class="fas fa-minus"></i>
-                    </button>
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-tool dropdown-toggle" data-bs-toggle="dropdown">
-                            <i class="fas fa-wrench"></i>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-right" role="menu">
-                            <a href="#" class="dropdown-item">Action</a>
-                            <a href="#" class="dropdown-item">Another action</a>
-                            <a href="#" class="dropdown-item">Something else here</a>
-                            <a class="dropdown-divider"></a>
-                            <a href="#" class="dropdown-item">Separated link</a>
-                        </div>
-                    </div>
-                    <button type="button" class="btn btn-tool" data-card-widget="remove">
-                        <i class="fas fa-times"></i>
-                    </button>
+
+<div class="features-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <h3>Real TOEIC Format</h3>
+                    <p>Experience the actual TOEIC test format with listening and reading sections.</p>
                 </div>
             </div>
-            <!-- /.card-header -->
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-8">
-                        <p class="text-center">
-                            <strong>Sales: 1 Jan, 2014 - 30 Jul, 2014</strong>
-                        </p>
-                        <div class="chart">
-                            <div class="chartjs-size-monitor">
-                                <div class="chartjs-size-monitor-expand">
-                                    <div class=""></div>
-                                </div>
-                                <div class="chartjs-size-monitor-shrink">
-                                    <div class=""></div>
-                                </div>
-                            </div>
-                            <!-- Sales Chart Canvas -->
-                            <canvas id="salesChart" height="360" style="height: 180px; display: block; width: 730px;" width="1460" class="chartjs-render-monitor"></canvas>
-                        </div>
-                        <!-- /.chart-responsive -->
-                    </div>
-                    <!-- /.col -->
-                    <div class="col-md-4">
-                        <p class="text-center">
-                            <strong>Goal Completion</strong>
-                        </p>
-                        <div class="progress-group">
-                            Add Products to Cart
-                            <span class="float-right"><b>160</b>/200</span>
-                            <div class="progress progress-sm">
-                                <div class="progress-bar bg-primary" style="width: 80%"></div>
-                            </div>
-                        </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <h3>Instant Results</h3>
+                    <p>Get your scores immediately after completing the test with detailed analysis.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <h3>Study Materials</h3>
+                    <p>Access practice questions, tips, and strategies to improve your TOEIC score.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
                         <!-- /.progress-group -->
                         <div class="progress-group">
                             Complete Purchase
